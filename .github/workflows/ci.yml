@@ -1,0 +1,24 @@
+﻿name: CI Docker Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Construire l'image Docker
+        run: docker build -t quicknotes:ci .
+
+      - name: Lancer le conteneur et tester /health
+        run: |
+          docker run -d -p 8080:8080 --name test-container quicknotes:ci
+          curl --retry 5 --retry-connrefused http://localhost:8080/health
+          docker stop test-container
